@@ -1,0 +1,32 @@
+[
+    {
+        "datos": {
+            "tipo_documento": "01",
+            "nombre_tipo_documento": "D.N.I.",
+            "numero_documento": "47809055",
+            "ape_paterno": "CHICOMA",
+            "ape_materno": "ESTRADA",
+            "nombres": "BRIAN FERNANDO",
+            "ubigeo": "150101",
+            "departamento": "LIMA",
+            "provincia": "LIMA",
+            "distrito": "LOS OLIVOS",
+            "celular": "993595288",
+            "correo": "xp.brian20@hotmail.com",
+            "whatsapp": "993595288"
+        },
+        "cuenta": {
+            "usuario": "xp.brian20@hotmail.com",
+            "password": "qaz123",
+            "method_sigin":{
+                "descripcion":"Correo",
+                "tipo":"01"
+            },
+            "is_first": false,
+            "tipo_usuario": {
+                "descripcion": "PACIENTE NORMAL",
+                "id": "01"
+            }
+        }
+    }
+]
