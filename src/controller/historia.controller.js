@@ -833,7 +833,9 @@ const getTurnoProgamadoListaFechaMedico = async (req, res) => {
         if (tipo_usuario === '09') {
             filtro.push(`especialidad_id  in (335,336)`)
         } else if (tipo_usuario === '03') {
-            let listaArray = ['43488483',
+            let listaArray = [
+                '07839267',
+                '43488483',
                 '18121657',
                 '29483239',
                 '08332557',
@@ -850,18 +852,7 @@ const getTurnoProgamadoListaFechaMedico = async (req, res) => {
                                                                                                         from vesalio.asignacion s
                                                                                                         inner join vesalio.personal pl on s.personal_id = pl.id
                                                                                                         inner join vesalio.persona p on p.id = pl.persona_id
-                                                                                                        where  documento in ('43488483',
-                                                                                                                        '18121657',
-                                                                                                                        '29483239',
-                                                                                                                        '08332557',
-                                                                                                                        '44385442',
-                                                                                                                        '002330722',
-                                                                                                                        '07217727',
-                                                                                                                        '09976772',
-                                                                                                                        '09736568',
-                                                                                                                        '21498409',
-                                                                                                                        '002605350',
-                                                                                                                        '43177080') 
+                                                                                                        where  documento in ('${doctor}') 
                                                                                                             group by especialidad_id`);
             if (listaArray.find(x => x === doctor) === undefined) {
                 if (doctor !== null) {
@@ -869,7 +860,7 @@ const getTurnoProgamadoListaFechaMedico = async (req, res) => {
                 }
             } else {
                 console.log(rowsArray);
-                filtro.push(`especialidad_id in (${rowsArray.map(x=>x.especialidad_id).join(',')}) `)
+                filtro.push(`especialidad_id in (${rowsArray.map(x => x.especialidad_id).join(',')}) `)
             }
         }
 
@@ -897,6 +888,18 @@ const getTurnoProgamadoListaFechaMedico = async (req, res) => {
                                 a.area_servicio_id,
                                 l.nombre lugar_nombre,
                                 piso.nombre piso_nombre,
+                                (select 
+                                    criterio_turno 
+                                from vesalio.enfermeria where id = (select 
+                                                                        cd.id
+                                                                    from vesalio.eventohc hc
+                                                                    inner join vesalio.consulta c on c.id = hc.datos
+                                                                    inner join vesalio.consultadetalle cd on cd.consulta_id = c.id
+                                                                    where hc.id = (select 
+                                                                                        ip.evento_id 
+                                                                                    from  vesalio.no_mostrar_internacion_emergencia noie
+                                                                                    inner join vesalio.internacion_persona ip on ip.id=noie.persona_internacion_id
+                                                                                    where turno_id = tp.id ))) grado_emergencia,
                                 asv.nombre area_servicio_nombre
                                 FROM vesalio.turno_programado tp
                                 INNER JOIN vesalio.agenda a ON tp.agenda_id = a.id
@@ -912,6 +915,7 @@ const getTurnoProgamadoListaFechaMedico = async (req, res) => {
                         ) datos  WHERE ${filtro.join(' and ')} order by fecha,hora,nombre_doctor`
 
         var tmp = []
+        var tmpFinal = []
         const [rows] = await conexion.find(x => x.nombre === 'servidor_copia').connect.query(consulta);
 
         for await (var num of rows) {
@@ -922,7 +926,24 @@ const getTurnoProgamadoListaFechaMedico = async (req, res) => {
                 Nro_TelMovil: result.recordset.length === 0 ? '-' : result.recordset[0].Nro_TelMovil
             })
         }
-        res.status(200).json(tmp)
+
+        for await (var num of tmp) {
+
+            if (tipo_usuario === '09') {
+                tmpFinal.push(num)
+            } else {
+                if ([331, 332, 333, 334, 337, 338, 339].filter(x => x === num.especialidad_id).length === 0) {
+                    if (num.documento_doctor === doctor) {
+                        tmpFinal.push(num)
+                    }
+                } else {
+                    tmpFinal.push(num)
+                }
+            }
+
+
+        }
+        res.status(200).json(tmpFinal)
     } catch (e) {
         console.log(e);
         res.status(200).json([])
